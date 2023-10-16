@@ -72,3 +72,30 @@ ORDER BY
 
 --Which actors/actresses didn't act for a longer period of time than the others?
 
+WITH ActorLastActivity AS (
+  SELECT
+    a.actor_id,
+    a.first_name,
+    a.last_name,
+    MAX(f.last_update) AS last_film_update
+  FROM
+    actor a
+    JOIN film_actor fa ON a.actor_id = fa.actor_id
+    JOIN film f ON fa.film_id = f.film_id
+  GROUP BY
+    a.actor_id, a.first_name, a.last_name
+)
+
+SELECT
+  actor_id,
+  first_name,
+  last_name,
+  CASE
+    WHEN last_film_update IS NOT NULL THEN NOW() - last_film_update
+    ELSE NULL
+  END AS inactive_period
+FROM
+  ActorLastActivity
+ORDER BY
+  inactive_period DESC;
+
